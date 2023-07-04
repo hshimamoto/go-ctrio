@@ -1,0 +1,36 @@
+name: release
+
+on: push
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: setup golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.19.x'
+      - name: show go version
+        run: go version
+      - name: build
+        run: CGO_ENABLED=0 go build -o ctrio.amd64
+        working-directory: ./examples/ctrio
+      - name: build for arm64
+        run: CGO_ENABLED=0 GOARCH=arm64 go build -o ctrio.arm64
+        working-directory: ./examples/ctrio
+      - name: build for Windows
+        run: GOOS=windows go build -o ctrio.exe
+        working-directory: ./examples/ctrio
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Latest files
+          tag_name: latest
+          files: |
+            examples/ctrio/ctrio.amd64
+            examples/ctrio/ctrio.arm64
+            examples/ctrio/ctrio.exe
